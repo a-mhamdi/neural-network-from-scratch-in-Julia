@@ -1,2 +1,14 @@
-# neural-network-from-scratch-in-Julia
+# Neural Network From Scratch In Julia
 We build and train a neural network architecture in Julia without usage of deep learning frameworks.
+
+Detailed steps of the backpropagation algorithm are shown in the images below.
+
+![BackProp](./Images/backprop-1.png)
+![BackProp](./Images/backprop-2.png)
+![BackProp](./Images/backprop-3.png)
+![BackProp](./Images/backprop-4.png)
+![BackProp](./Images/backprop-5.png)
+![BackProp](./Images/backprop-6.png)
+![BackProp](./Images/backprop-7.png)
+
+The code is written in Julia and can be found in the `src` folder. The `main.jl` file contains the main code to train the neural network.
