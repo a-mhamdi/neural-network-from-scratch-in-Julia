@@ -11,8 +11,8 @@ mutable struct Layer
 end
 
 function Layer(input_size::Int, output_size::Int, act::Function)
-    W = randn(output_size, input_size)
-    b = zeros(output_size) # randn(output_size)
+    W = .01 * randn(output_size, input_size)
+    b = .01 * randn(output_size)
     Layer(W, b, act) 
 end
 
