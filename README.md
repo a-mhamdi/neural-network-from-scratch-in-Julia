@@ -1,7 +1,7 @@
 # Neural Network From Scratch In Julia
 We build and train a neural network architecture in Julia without usage of deep learning frameworks.
 
-Detailed steps of the backpropagation algorithm are shown in the images below.
+Detailed steps of the backpropagation algorithm are shown in the images below ([source](https://github.com/a-mhamdi/jlai/blob/main/Slides-Labs/Demystifying%20AI%20Sorcery%20(Part-1).pdf)).
 
 ![BackProp](./Images/backprop-1.png)
 ![BackProp](./Images/backprop-2.png)
