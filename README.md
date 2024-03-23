@@ -14,8 +14,14 @@ Detailed steps of the backpropagation algorithm are shown in the images below ([
 The code is written in Julia and can be found in the `src` folder. The `main.jl` file contains the main code to train the neural network.
 
 **TODO:** Implement the following features:
-- [x] Implement different activation functions: `ReLU`, `LeakyReLU`, `Sigmoid`, `Tanh`, `Softmax`
-- [ ] Split data into training and testing sets
-- [ ] Implement a validation set
-- [ ] Implement a mini-batch gradient descent
-- [ ] Implement optimizers: `SGD+Momentum`, `SGD+Nesterov`, `Adam`, `RMSprop`, `Adagrad`, `Adadelta`
+- [x] different activation functions: `Sigmoid`, `Softmax`, `Tanh`, `ReLU`, `LeakyReLU`
+- [x] data split into training, testing and validation sets
+- [x] the mini-batch gradient descent
+- [x] the `L1` regularization technique
+- [ ] the `Dropout` regularization technique
+- [ ] optimizers: `SGD+Momentum`, `SGD+Nesterov`, `Adam`, `RMSprop`, `Adagrad`, `Adadelta`
+
+**FIXME:** Fix the following issues:
+- [] Fix `L1` and `Elastic Net` implementations
+
+**Note:** The code is not optimized for performance. It is written for educational purposes.
