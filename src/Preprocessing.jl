@@ -27,6 +27,12 @@ function data_split(X::Vector{Float64}, y::Vector{Float64}; shuffle=true, train_
 end
 
 # Data loader
-data_loader(X, y, batch_size) = hcat(collect(Iterators.partition(X, batch_size)), collect(Iterators.partition(y, batch_size)))
+function data_loader(data, batch_size)
+    # Calculate the total number of batches
+    num_batches = Int(ceil(length(data) / batch_size))
+    # Partition data into batches
+    batches = [ data[(i-1)*batch_size+1:min(i*batch_size, end)] for i in 1:num_batches ]
+    return batches
+end
 
 end # END
