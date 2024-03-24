@@ -18,11 +18,11 @@ function Layer(input_size::Int, output_size::Int, act::Function)
     Layer(W, b, act) 
 end
 
-function (l::Layer)(x::Array{Float64, 1})
+function (l::Layer)(x::Vector{Float64})
     l.W * x .+ l.b
 end
 
-function FeedForward(layers::Vector{Layer}, x::Array{Float64, 1})
+function FeedForward(layers::Vector{Layer}, x::Vector{Float64})
     # foldl((x, l) -> l.act.(l(x)), layers, init=x)
     a = [x]
     h = [x]
@@ -38,9 +38,11 @@ struct Regularizer
     λ::Float64
     r::Float64
     dropout::Float64
+
+    Regularizer() = new(:None, 0.0, 0.0, 0.0)
 end
 
-function BackProp(layers::Vector{Layer}, a::Array{Array{Float64, 1}, 1}, h::Array{Array{Float64, 1}, 1}, y::Array{Float64, 1}, reg::Regularizer)
+function BackProp(layers::Vector{Layer}, a::Array{Array{Float64, 1}, 1}, h::Array{Array{Float64, 1}, 1}, y::Vector{Float64}, reg::Regularizer)
     # Compute δ
     act_prime = eval(Symbol(layers[end].act, "_prime")).(a[end])
 

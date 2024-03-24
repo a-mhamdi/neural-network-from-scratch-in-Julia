@@ -1,6 +1,5 @@
 module ActivationFunctions
 
-
 export sigmoid, softmax, tanh, relu, leaky_relu # activation functions
 export sigmoid_prime, softmax_prime, tanh_prime, relu_prime, leaky_relu_prime # their corresponding derivatives
 
