@@ -18,19 +18,26 @@ function Layer(input_size::Int, output_size::Int, act::Function)
     Layer(W, b, act) 
 end
 
-function (l::Layer)(x::Vector{Float64})
+function (l::Layer)(x) # ::Array{Float64, 2})
     l.W * x .+ l.b
 end
 
-function FeedForward(layers::Vector{Layer}, x::Vector{Float64})
-    # foldl((x, l) -> l.act.(l(x)), layers, init=x)
-    a = [x]
-    h = [x]
-    for l in layers
-        push!(a, l(a[end]))
-        push!(h, l.act.(a[end]))
+function FeedForward(layers::Vector{Layer}, x) # ::Union{Vector{Float64}, Matrix{Float64}, Array{Float64, 2}})
+    nrows, _ = size(x)
+    A, a = [], []
+    H, h = [], []
+    for i in 1:nrows
+        data = x[i, :]
+        for l in layers
+            data = l(data)
+            push!(a, data)
+            data = l.act.(data)
+            push!(h, data)
+        end
+        push!(A, a); a = []
+        push!(H, h); h = []
     end
-    a, h
+    A, H # dims = (batch_size, first_layer_output_size ... last_layer_output_size)
 end
 
 struct Regularizer
@@ -42,7 +49,13 @@ struct Regularizer
     Regularizer() = new(:None, 0.0, 0.0, 0.0)
 end
 
-function BackProp(layers::Vector{Layer}, a::Array{Array{Float64, 1}, 1}, h::Array{Array{Float64, 1}, 1}, y::Vector{Float64}, reg::Regularizer)
+function BackProp(layers::Vector{Layer}, A, H, x, y, reg) # ::Array{Array{Float64, 1}, 1}, h::Array{Array{Float64, 1}, 1}, y::Vector{Float64}, reg::Regularizer)
+    
+    a = A[end]
+    h = H[end]
+    pushfirst!(h, x[end, :])
+    y = y[end]
+
     # Compute δ
     act_prime = eval(Symbol(layers[end].act, "_prime")).(a[end])
 
@@ -62,6 +75,7 @@ function BackProp(layers::Vector{Layer}, a::Array{Array{Float64, 1}, 1}, h::Arra
         act_prime = eval(Symbol(layers[i].act, "_prime")).(a[i+1])
         pushfirst!(δ, (layers[i+1].W' * δ[1]) .* act_prime)
     end
+    
     # Compute gradients
     ∇W = [δ[i] * h[i]' for i in 1:length(layers)]
     ∇b = δ
