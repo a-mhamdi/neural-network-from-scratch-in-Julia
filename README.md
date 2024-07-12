@@ -17,7 +17,7 @@ The code is written in Julia and can be found in the `src` folder. The `main.jl`
 - [x] different activation functions: `Sigmoid`, `Softmax`, `Tanh`, `ReLU`, `LeakyReLU`
 - [x] data split into training, testing and validation sets
 - [x] the mini-batch gradient descent
-- [x] the `L1` regularization technique
+- [x] the `L2` regularization technique
 - [ ] the `Dropout` regularization technique
 - [ ] optimizers: `SGD+Momentum`, `SGD+Nesterov`, `Adam`, `RMSprop`, `Adagrad`, `Adadelta`
 
