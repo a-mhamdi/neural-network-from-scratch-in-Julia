@@ -13,8 +13,8 @@ mutable struct Layer
 end
 
 function Layer(input_size::Int, output_size::Int, act::Function)
-    W = .01 * randn(output_size, input_size)
-    b = .01 * randn(output_size)
+    W = 1/sqrt(input_size) .* (2 .* rand(output_size, input_size) .- 1) # Xavier initialization
+    b = zeros(output_size)
     Layer(W, b, act) 
 end
 
