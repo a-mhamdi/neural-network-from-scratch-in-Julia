@@ -19,6 +19,7 @@ The code is written in Julia and can be found in the `src` folder. The `main.jl`
 - [x] the mini-batch gradient descent
 - [x] the `L2` regularization technique
 - [ ] the `Dropout` regularization technique
+- [ ] the `He` weight initialization
 - [ ] optimizers: `SGD+Momentum`, `SGD+Nesterov`, `Adam`, `RMSprop`, `Adagrad`, `Adadelta`
 
 **FIXME:** Fix the following issues:
