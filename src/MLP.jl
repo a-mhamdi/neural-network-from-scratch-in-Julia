@@ -12,8 +12,24 @@ mutable struct Layer
     act::Function
 end
 
-function Layer(input_size::Int, output_size::Int, act::Function)
-    W = 1/sqrt(input_size) .* (2 .* rand(output_size, input_size) .- 1) # Xavier initialization
+function Layer(input_size::Int, output_size::Int, act::Function; distribution::Char='U')
+    if act in [relu, leaky_relu] # He initialization
+        if distribution == 'U' # uniform
+            W = sqrt(6/input_size) .* (2 .* rand(output_size, input_size) .- 1)
+        elseif distribution == 'N' # normal
+            W = sqrt(2/input_size) .* randn(output_size, input_size)
+        else
+            @error "Invalid distribution"
+        end
+    else # Xavier (Glorot) initialization
+        if distribution == 'U'
+            W = sqrt(6/(input_size + output_size)) .* (2 .* rand(output_size, input_size) .- 1) 
+        elseif distribution == 'N'
+            W = sqrt(2/(input_size + output_size)) .* randn(output_size, input_size)
+        else
+            @error "Invalid distribution"
+        end
+    end
     b = zeros(output_size)
     Layer(W, b, act) 
 end
@@ -42,11 +58,12 @@ end
 
 struct Regularizer
     method::Symbol # :L1, :L2, :ElasticNet
-    λ::Float64
-    r::Float64
-    dropout::Float64
+    λ::Float64 
+    r::Float64 
+    dropout::Float64 
 
-    Regularizer() = new(:None, 0.0, 0.0, 0.0)
+    Regularizer(a, b, c, d) = new(a, b, c, d)
+    Regularizer() = new(:None, 0., 0., 0.)
 end
 
 function BackProp(layers::Vector{Layer}, A, H, x, y, reg) # ::Array{Array{Float64, 1}, 1}, h::Array{Array{Float64, 1}, 1}, y::Vector{Float64}, reg::Regularizer)
@@ -63,11 +80,17 @@ function BackProp(layers::Vector{Layer}, A, H, x, y, reg) # ::Array{Array{Float6
     loss = 1/2 * sum(ϵ .^ 2)
 
     if reg.method == :L1
-        loss += reg.λ .* sum(abs.(layers[end].W))
+        for l in layers
+            loss += reg.λ .* sum(abs.(l.W))
+        end
     elseif reg.method == :L2
-        loss += reg.λ/2 .* sum(layers[end].W .^ 2)
+        for l in layers
+            loss += reg.λ/2 .* sum(l.W .^ 2)
+        end
     elseif reg.method == :ElasticNet
-        loss += reg.r * reg.λ .* sum(abs.(layers[end].W)) .+ (1-reg.r) * reg.λ/2 .* sum(layers[end].W .^ 2)
+        for l in layers
+            loss += reg.r * reg.λ .* sum(abs.(l.W)) .+ (1-reg.r) * reg.λ/2 .* sum(l.W .^ 2)
+        end
     end
 
     δ = [-(y .- h[end]) .* act_prime]

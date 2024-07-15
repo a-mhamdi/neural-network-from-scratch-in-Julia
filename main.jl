@@ -23,7 +23,7 @@ hp = Settings(12, .003, 1)
 using Random
 # Artificial data
 n, α, β = 1024, 1., -.5
-x = 2 .* randn(n, 2) .+ 5
+x = 2 .* randn(n, 5) .+ 5
 y = α .* sum(x, dims=2) .+ β |> ( ano -> reshape(ano, n) )
 
 (x_train, y_train), (x_test, y_test), (x_val, y_val) = data_split(x, y, train_size=.7, val_size=.1)
@@ -31,19 +31,10 @@ data_x = data_loader(x_train, hp.batch_size)
 data_y = data_loader(y_train, hp.batch_size)
 
 # Model architecture
-model = [Layer(2, 4, relu), Layer(4, 1, relu)] # SLP
+model = [Layer(5, 4, relu; distribution='N'), Layer(4, 1, relu; distribution='N')] # MLP
 
 # Regularizer
-regularizer = Regularizer()
-
-coef = 1.
-if regularizer.method == :L1
-    # FIXME - L1 regularization 
-elseif regularizer.method == :L2
-    coef -= hp.η * optimizer.λ / hp.batch_size
-else regularizer.method == :ElasticNet
-    # FIXME - ElasticNet regularization
-end
+regularizer = Regularizer(:L2, .8, 0., 0.) # method, λ, r, dropout
 
 ltrn, ltst = [], []
 for epoch in 1:hp.epochs
@@ -54,7 +45,7 @@ for epoch in 1:hp.epochs
         loss, ∇W, ∇b = BackProp(model, A, H, data_in, data_out, regularizer)
         # Update parameters
         for i in 1:lastindex(model)
-            model[i].W  = coef * model[i].W - hp.η * ∇W[i]
+            model[i].W -= hp.η * ∇W[i]
             model[i].b -= hp.η * ∇b[i]
         end
     end
@@ -64,6 +55,7 @@ for epoch in 1:hp.epochs
     ŷ = [row[end][end] for row in trn]
     loss = sum( ( y_train .- ŷ ) .^ 2 ) / length(y_train)
     push!(ltrn, loss)
+
     ### TEST LOSS
     _, tst = FeedForward(model, x_test)
     ŷ = [row[end][end] for row in tst]
@@ -73,5 +65,5 @@ for epoch in 1:hp.epochs
     @info "epoch $epoch >>> train loss: $(ltrn[end]) *** test loss: $(ltst[end])"
 end
 
-plot(ltrn, xlabel="epoch", ylabel="loss", title="Loss Function J", label="train")
+plot(ltrn, xlabel="epoch", ylabel="loss", title="loss values", label="train")
 plot!(ltst, label="test")
