@@ -18,7 +18,7 @@ mutable struct Settings
     Settings(epochs, η) = new(epochs, η, 1)
 end
 
-hp = Settings(32, .01, 1) 
+hp = Settings(12, .003, 1) 
 
 using Random
 # Artificial data
@@ -45,24 +45,33 @@ else regularizer.method == :ElasticNet
     # FIXME - ElasticNet regularization
 end
 
-lvec = []
+ltrn, ltst = [], []
 for epoch in 1:hp.epochs
     for (data_in, data_out) in zip(data_x, data_y)
         # Forward pass
         A, H = FeedForward(model, data_in)
         # Backward pass
         loss, ∇W, ∇b = BackProp(model, A, H, data_in, data_out, regularizer)
-        push!(lvec, loss)
         # Update parameters
         for i in 1:lastindex(model)
             model[i].W  = coef * model[i].W - hp.η * ∇W[i]
             model[i].b -= hp.η * ∇b[i]
         end
     end
+
+    ### TRAIN LOSS
+    _, trn = FeedForward(model, x_train)
+    ŷ = [row[end][end] for row in trn]
+    loss = sum( ( y_train .- ŷ ) .^ 2 ) / length(y_train)
+    push!(ltrn, loss)
+    ### TEST LOSS
     _, tst = FeedForward(model, x_test)
     ŷ = [row[end][end] for row in tst]
     loss = sum( ( y_test .- ŷ ) .^ 2 ) / length(y_test)
-    @info "Epoch: $epoch >>> Loss: $loss *** ̂α = $(model[1].W[1]) *** ̂β = $(model[1].b[1])"
+    push!(ltst, loss)
+
+    @info "epoch $epoch >>> train loss: $(ltrn[end]) *** test loss: $(ltst[end])"
 end
 
-plot(lvec, legend=false, title="Loss Function J", xlabel="Iterations", ylabel="Loss")
+plot(ltrn, xlabel="epoch", ylabel="loss", title="Loss Function J", label="train")
+plot!(ltst, label="test")
