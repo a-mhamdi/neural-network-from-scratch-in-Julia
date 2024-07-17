@@ -18,6 +18,7 @@ The code is written in Julia and can be found in the `src` folder. The `main.jl`
 - [x] data split into training, testing and validation sets
 - [x] the mini-batch gradient descent
 - [x] the `L2` regularization technique
+- [ ] parallelization of backprop on the batch of data instead of using a for loop
 - [ ] the `Dropout` regularization technique
 - [x] the `uniform` and `normal`, `Xavier Glorot` `He` weights initializations
 - [ ] optimizers: `SGD+Momentum`, `SGD+Nesterov`, `Adam`, `RMSprop`, `Adagrad`, `Adadelta`
