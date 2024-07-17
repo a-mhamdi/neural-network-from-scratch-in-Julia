@@ -66,42 +66,57 @@ struct Regularizer
     Regularizer() = new(:None, 0., 0., 0.)
 end
 
-function BackProp(layers::Vector{Layer}, A, H, x, y, reg) # ::Array{Array{Float64, 1}, 1}, h::Array{Array{Float64, 1}, 1}, y::Vector{Float64}, reg::Regularizer)
+function BackProp(layers::Vector{Layer}, A, H, data_x, data_y, reg) # ::Array{Array{Float64, 1}, 1}, h::Array{Array{Float64, 1}, 1}, y::Vector{Float64}, reg::Regularizer)
     
-    a = A[end]
-    h = H[end]
-    pushfirst!(h, x[end, :])
-    y = y[end]
+    loss, ∇W, ∇b = 0., [], []
 
-    # Compute δ
-    act_prime = eval(Symbol(layers[end].act, "_prime")).(a[end])
+    ∇W = [zeros(size(l.W)) for l in layers]
+    ∇b = [zeros(size(l.b)) for l in layers]
 
-    ϵ = (y .- h[end])
-    loss = 1/2 * sum(ϵ .^ 2)
+    batch_size = size(A)[1]
 
-    if reg.method == :L1
-        for l in layers
-            loss += reg.λ .* sum(abs.(l.W))
+    for i in 1:batch_size
+        a = A[i]
+        h = H[i]
+        pushfirst!(h, data_x[i, :])
+        y = data_y[i]
+
+        # Compute δ
+        act_prime = eval(Symbol(layers[end].act, "_prime")).(a[end])
+
+        ϵ = (y .- h[end])
+        loss = 1/2 * sum(ϵ .^ 2)
+
+        if reg.method == :L1
+            for l in layers
+                loss += reg.λ .* sum(abs.(l.W))
+            end
+        elseif reg.method == :L2
+            for l in layers
+                loss += reg.λ/2 .* sum(l.W .^ 2)
+            end
+        elseif reg.method == :ElasticNet
+            for l in layers
+                loss += reg.r * reg.λ .* sum(abs.(l.W)) .+ (1-reg.r) * reg.λ/2 .* sum(l.W .^ 2)
+            end
         end
-    elseif reg.method == :L2
-        for l in layers
-            loss += reg.λ/2 .* sum(l.W .^ 2)
+
+        δ = [-(y .- h[end]) .* act_prime]
+        for j in length(layers)-1:-1:1
+            act_prime = eval(Symbol(layers[j].act, "_prime")).(a[j+1])
+            pushfirst!(δ, (layers[j+1].W' * δ[1]) .* act_prime)
         end
-    elseif reg.method == :ElasticNet
-        for l in layers
-            loss += reg.r * reg.λ .* sum(abs.(l.W)) .+ (1-reg.r) * reg.λ/2 .* sum(l.W .^ 2)
-        end
+        # Compute gradients
+
+        ∇W .+= [δ[k] * h[k]' for k in 1:length(layers)]
+        ∇b .+= δ
+
+        a, h = [], []
     end
 
-    δ = [-(y .- h[end]) .* act_prime]
-    for i in length(layers)-1:-1:1
-        act_prime = eval(Symbol(layers[i].act, "_prime")).(a[i+1])
-        pushfirst!(δ, (layers[i+1].W' * δ[1]) .* act_prime)
-    end
-    
-    # Compute gradients
-    ∇W = [δ[i] * h[i]' for i in 1:length(layers)]
-    ∇b = δ
+    ∇W ./= batch_size
+    ∇W ./= batch_size
+
     loss, ∇W, ∇b
 end
 
