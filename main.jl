@@ -31,7 +31,7 @@ data_y = data_loader(y_train, hp.batch_size)
 # Model architecture
 num_features = size(x)[2]
 model = [ # MLP
-    Layer(num_features, 4,relu; distribution='N'), 
+    Layer(num_features, 4, relu; distribution='N'), 
     Layer(4, 1, relu; distribution='N')
     ]
 
