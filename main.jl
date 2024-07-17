@@ -1,8 +1,6 @@
 using Printf
 Base.show(io::IO, f::Float64) = @printf(io, "%1.3f", f)
 
-using Revise
-
 push!(LOAD_PATH, pwd() * "/src")
 
 using Preprocessing, ActivationFunctions, MLP
@@ -18,7 +16,7 @@ mutable struct Settings
     Settings(epochs, η) = new(epochs, η, 1)
 end
 
-hp = Settings(12, .003, 1) 
+hp = Settings(16, .001, 6) 
 
 using Random
 # Artificial data
@@ -31,7 +29,11 @@ data_x = data_loader(x_train, hp.batch_size)
 data_y = data_loader(y_train, hp.batch_size)
 
 # Model architecture
-model = [Layer(5, 4, relu; distribution='N'), Layer(4, 1, relu; distribution='N')] # MLP
+num_features = size(x)[2]
+model = [ # MLP
+    Layer(num_features, 4,relu; distribution='N'), 
+    Layer(4, 1, relu; distribution='N')
+    ]
 
 # Regularizer
 regularizer = Regularizer(:L2, .8, 0., 0.) # method, λ, r, dropout
