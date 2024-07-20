@@ -4,8 +4,8 @@ export data_split, data_loader
 
 using Random
 
-# Data split
-function data_split(X::Array{Float64, 2}, y::Vector{Float64}; shuffle=true, train_size::Float64=.8, val_size::Float64=.0)
+## DATA SPLITTER
+function data_split(X, y; shuffle=true, train_size::Float64=.8, val_size::Float64=.0)
     nrows = size(X)[1]
     ntrain = floor(Int, nrows * train_size)
 
@@ -26,13 +26,14 @@ function data_split(X::Array{Float64, 2}, y::Vector{Float64}; shuffle=true, trai
     (X_train, y_train), (X_test, y_test), (X_val, y_val)
 end
 
-# Data loader
+## DATA LOADER
 function data_loader(data, batch_size)
     # Calculate the total number of batches
     num_batches = Int(floor(length(data) / batch_size))
     # Partition data into batches
     batches = [ data[ min((i-1)*batch_size+1, num_batches-1):min(i*batch_size, end), : ] for i in 1:num_batches ]
-    return batches
+    
+    batches
 end
 
 end # END
