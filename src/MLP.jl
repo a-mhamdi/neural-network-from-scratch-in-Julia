@@ -66,11 +66,11 @@ end
 
 ### LOSS
 function Loss(y, ŷ; loss::Union{Symbol,String}=:MSE)
-    if (typeof(loss) == Symbol && loss == :MAE) || (typeof(loss) == String && lowercase(loss) == "mae") # mean absolute error
+    if (isa(loss, Symbol) && loss == :MAE) || (isa(loss, String) && lowercase(loss) == "mae") # mean absolute error
         ls = sum(abs.(y .- ŷ)) ./ length(y)
-    elseif (typeof(loss) == Symbol && loss == :MSE) || (typeof(loss) == String && lowercase(loss) == "mse") # mean squared error
+    elseif (isa(loss, Symbol) && loss == :MSE) || (isa(loss, String) && lowercase(loss) == "mse") # mean squared error
         ls = sum((y .- ŷ) .^ 2) ./ length(y)
-    elseif (typeof(loss) == Symbol && loss == :CrossEntropy) || (typeof(loss) == String && lowercase(loss) == "crossentropy")
+    elseif (isa(loss, Symbol) && loss == :CrossEntropy) || (isa(loss, String) && lowercase(loss) == "crossentropy")
         if typeof(size(y)) == Tuple{Int64}
         ls = sum(-y .* log.(ŷ) .- (1 .- y) .* log.(1 .- ŷ)) ./ length(y) # binary cross entropy
         else
@@ -138,17 +138,17 @@ function BackProp(layers::Vector{Layer}, A, H, data_in, data_out; solver::Solver
 
         loss += Loss(y, h[end]; loss=solver.loss)
 
-        if (typeof(reg.method) == Symbol && reg.method == :L1) || (typeof(reg.method) == String && lowercase(reg.method) == "l1") # LASSO 
+        if (isa(reg.method, Symbol) && reg.method == :L1) || (isa(reg.method, String) && lowercase(reg.method) == "l1") # LASSO 
             for (ix, l) in enumerate(layers)
                 loss += reg.λ .* sum(abs.(l.W))
                 ∇W[ix] .+= reg.λ .* sign.(l.W)
             end
-        elseif (typeof(reg.method) == Symbol && reg.method == :L2) || (typeof(reg.method) == String && lowercase(reg.method) == "l2") # RIDGE
+        elseif (isa(reg.method, Symbol) && reg.method == :L2) || (isa(reg.method, String) && lowercase(reg.method) == "l2") # RIDGE
             for (ix, l) in enumerate(layers)
                 loss += reg.λ/2 .* sum(l.W .^ 2)
                 ∇W[ix] .+= reg.λ .* l.W
             end
-        elseif (typeof(reg.method) == Symbol && reg.method == :ElasticNet) || (typeof(reg.method) == String && lowercase(reg.method) == "elasticnet")
+        elseif (isa(reg.method, Symbol) && reg.method == :ElasticNet) || (isa(reg.method, String) && lowercase(reg.method) == "elasticnet")
             for (ix, l) in enumerate(layers)
                 loss += reg.r * reg.λ .* sum(abs.(l.W)) .+ (1-reg.r) * reg.λ/2 .* sum(l.W .^ 2)
                 ∇W[ix] .+= reg.r * reg.λ .* sign.(l.W) .+ (1-reg.r) * reg.λ .* l.W
