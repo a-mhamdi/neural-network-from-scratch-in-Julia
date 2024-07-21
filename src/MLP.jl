@@ -1,6 +1,9 @@
 module MLP
 
+using LinearAlgebra
 using ActivationFunctions
+
+export FeedForward, BackProp
 
 export Regularizer, Solver
 export Layer, TrainNN, Predict, Loss
@@ -40,7 +43,7 @@ end
 
 ### REGULARIZER: method, λ, r, dropout
 struct Regularizer
-    method::Symbol # :L1, :L2, :ElasticNet
+    method::Union{Symbol, String} # :L1, :L2, :ElasticNet
     λ::Float64 
     r::Float64 
     dropout::Float64 
@@ -51,8 +54,8 @@ end
 
 ### SOLVER: loss, optimizer, η, regularizer
 struct Solver
-    loss::Symbol # :MSE, :CrossEntropy
-    optimizer::Symbol # :SGD, :Adam, :RMSprop
+    loss::Union{Symbol, String} # :MSE, :CrossEntropy
+    optimizer::Union{Symbol, String} # :SGD, :Adam, :RMSprop
     η::Float64
     regularizer::Regularizer
 
@@ -62,12 +65,12 @@ struct Solver
 end
 
 ### LOSS
-function Loss(y, ŷ; loss=:MSE)
-    if loss== :MAE # mean absolute error
+function Loss(y, ŷ; loss::Union{Symbol,String}=:MSE)
+    if (typeof(loss) == Symbol && loss == :MAE) || (typeof(loss) == String && lowercase(loss) == "mae") # mean absolute error
         ls = sum(abs.(y .- ŷ)) ./ length(y)
-    elseif loss == :MSE # mean squared error
+    elseif (typeof(loss) == Symbol && loss == :MSE) || (typeof(loss) == String && lowercase(loss) == "mse") # mean squared error
         ls = sum((y .- ŷ) .^ 2) ./ length(y)
-    elseif loss == :CrossEntropy 
+    elseif (typeof(loss) == Symbol && loss == :CrossEntropy) || (typeof(loss) == String && lowercase(loss) == "crossentropy")
         if typeof(size(y)) == Tuple{Int64}
         ls = sum(-y .* log.(ŷ) .- (1 .- y) .* log.(1 .- ŷ)) ./ length(y) # binary cross entropy
         else
@@ -135,17 +138,20 @@ function BackProp(layers::Vector{Layer}, A, H, data_in, data_out; solver::Solver
 
         loss += Loss(y, h[end]; loss=solver.loss)
 
-        if reg.method == :L1 # LASSO 
-            for l in layers
+        if (typeof(reg.method) == Symbol && reg.method == :L1) || (typeof(reg.method) == String && lowercase(reg.method) == "l1") # LASSO 
+            for (ix, l) in enumerate(layers)
                 loss += reg.λ .* sum(abs.(l.W))
+                ∇W[ix] .+= reg.λ .* sign.(l.W)
             end
-        elseif reg.method == :L2 # RIDGE
-            for l in layers
+        elseif (typeof(reg.method) == Symbol && reg.method == :L2) || (typeof(reg.method) == String && lowercase(reg.method) == "l2") # RIDGE
+            for (ix, l) in enumerate(layers)
                 loss += reg.λ/2 .* sum(l.W .^ 2)
+                ∇W[ix] .+= reg.λ .* l.W
             end
-        elseif reg.method == :ElasticNet
-            for l in layers
+        elseif (typeof(reg.method) == Symbol && reg.method == :ElasticNet) || (typeof(reg.method) == String && lowercase(reg.method) == "elasticnet")
+            for (ix, l) in enumerate(layers)
                 loss += reg.r * reg.λ .* sum(abs.(l.W)) .+ (1-reg.r) * reg.λ/2 .* sum(l.W .^ 2)
+                ∇W[ix] .+= reg.r * reg.λ .* sign.(l.W) .+ (1-reg.r) * reg.λ .* l.W
             end
         end
 
@@ -161,22 +167,13 @@ function BackProp(layers::Vector{Layer}, A, H, data_in, data_out; solver::Solver
         ∇W += [-δ[k] * h[k]' for k in 1:length(layers)]
         ∇b += -δ
 
-        for j in 1:length(layers)
-            if reg.method == :L1 # LASSO
-                ∇W[j] .+= reg.λ .* sign.(layers[j].W)
-            elseif reg.method == :L2 # RIDGE
-                ∇W[j] .+= reg.λ .* layers[j].W
-            elseif reg.method == :ElasticNet
-                ∇W[j] .+= reg.λ .* sign.(layers[j].W) .+ reg.λ .* layers[j].W
-            end
-        end
-
         a, h = [], []
     end
 
     loss /= batch_size
     ∇W  ./= batch_size
-    ∇W  ./= batch_size
+    ∇b  ./= batch_size
+
     loss, ∇W, ∇b
 end
 
