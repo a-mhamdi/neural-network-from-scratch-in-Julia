@@ -1,9 +1,6 @@
 module MLP
 
-using LinearAlgebra
 using ActivationFunctions
-
-export FeedForward, BackProp
 
 export Regularizer, Solver
 export Layer, TrainNN, Predict, Loss
