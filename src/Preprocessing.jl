@@ -21,7 +21,7 @@ function data_split(X, y; shuffle=true, train_size::Float64=.8, val_size::Float6
     end
     
     X_train, X_test, X_val = X[train,:], X[test,:], X[val,:]
-    y_train, y_test, y_val = y[train], y[test], y[val]
+    y_train, y_test, y_val = y[train,:], y[test,:], y[val,:]
 
     (X_train, y_train), (X_test, y_test), (X_val, y_val)
 end
