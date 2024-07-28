@@ -1,21 +1,21 @@
 # Neural Network From Scratch In `Julia`
-We build and train a neural network architecture in `Julia` without usage of deep learning frameworks. 
+Without using any deep learning frameworks, we construct and train a neural network architecture in `Julia` from the ground up.
 
-## Design of the architecture
-The neural network (NN) is built from scratch and trained on some random data. The NN architecture is as follows:
+## Architecture's Design
+The neural network (NN) is built from scratch and trained on some random data. Here is the NN architecture:
 
 ```julia
 model = [ # MLP
-    Layer(num_features, num_neurons, relu; distribution='N'), 
-    Layer(num_neurons, num_targets, softmax; distribution='N')
+    Layer(num_features, num_neurons, relu; distribution='n'), 
+    Layer(num_neurons, num_targets, softmax; distribution='n')
     ]
 ```
-The choice of distribution for the weights initialization is either `N` for normal distribution or `U` for uniform distribution. Both `Xavier` and `He` initializations were implemented. The hyperparameters are defined as follows:
+The choice of distribution for the weights initialization is either `n` for normal distribution or `u` for uniform distribution. Both `Xavier` and `He` initializations were implemented. Here is how the hyperparameters are defined:
 ```julia
 Settings(epochs, batch_size)
 ```
 
-## Training the model
+## Model's Training
 
 We can define a `struct` for the regularizer as follows:
 ```julia
@@ -50,19 +50,19 @@ Detailed steps of the backpropagation algorithm are shown in the images below ([
 ![BackProp](./Images/backprop-6.png)
 ![BackProp](./Images/backprop-7.png)
 
-The code is written in `Julia` and can be found in the `src` folder. The `main.jl` file contains the main code to train the neural network.
+The code is written in `Julia` and is located in the `src` folder. The `main.jl` file contains the primary code to setup the simulation.
 
-## Simulation results
+## Simulation Outcomes
 
-The *loss* of the model after each epoch is shown in the figure below, for both the *training* and *test sets*.
+The figure below displays the model's *loss* for both the *training* and *test sets* at the end of each epoch.
 
 ![Loss](./Images/plot_loss.svg)
 
-*Confusion matrix*, *accuracy*, *precision*, *recall* and *f1 scores* are detailed as below.
+The following provides specifics about *Confusion matrix*, *accuracy*, *precision*, *recall* and *f1 scores*.
 
 ![Metrics](./Images/results.png)
 
-**Note:** The code is not optimized for performance. It is written for educational purposes.
+**Note:** The code is not optimized for performance. It is written for educational purposes. There is always room for improvement.
 
 **TODO:** Implement the following features:
 - [ ] parallelization of backprop on the batch of data instead of using a for loop;
