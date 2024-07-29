@@ -42,13 +42,7 @@ loss, ∇W, ∇b = BackProp(model, data_cache, data_out; solver::Solver)
 
 Detailed steps of the backpropagation algorithm are shown in the images below ([source](https://github.com/a-mhamdi/jlai/blob/main/Slides-Labs/Demystifying%20AI%20Sorcery%20(Part-1).pdf)).
 
-![BackProp](./Images/backprop-1.png)
-![BackProp](./Images/backprop-2.png)
-![BackProp](./Images/backprop-3.png)
-![BackProp](./Images/backprop-4.png)
-![BackProp](./Images/backprop-5.png)
-![BackProp](./Images/backprop-6.png)
-![BackProp](./Images/backprop-7.png)
+![BackProp](./Images/backprop.gif)
 
 The code is written in `Julia` and is located in the `src` folder. The `main.jl` file contains the primary code to setup the simulation.
 
