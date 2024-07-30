@@ -2,7 +2,7 @@
 Without using any deep learning frameworks, we construct and train a neural network architecture in `Julia` from the ground up.
 
 ## Architecture's Design
-The neural network (NN) is built from scratch and trained on some random data. Here is the NN architecture:
+The neural network (NN) is built from scratch and trained on some random data. Here is a possible representation of the NN architecture:
 
 ```julia
 model = [ # MLP
@@ -10,7 +10,7 @@ model = [ # MLP
     Layer(num_neurons, num_targets, softmax; distribution='n')
     ]
 ```
-The choice of distribution for the weights initialization is either `n` for normal distribution or `u` for uniform distribution. Both `Xavier` and `He` initializations were implemented. Here is how the hyperparameters are defined:
+The choice of distribution for the weights initialization is either `n` for normal distribution or `u` for uniform distribution. Both `Xavier` and `He` initializations were implemented. Some of the hyperparameters are configured as follows:
 ```julia
 Settings(epochs, batch_size)
 ```
