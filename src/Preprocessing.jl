@@ -2,11 +2,12 @@ module Preprocessing
 
 export data_split, data_loader
 
+
 using Random
 
 ## DATA SPLITTER
-function data_split(X, y; shuffle=true, train_size::Float64=.8, val_size::Float64=.0)
-    nrows = size(X)[1]
+function data_split(x, y; shuffle=true, train_size::Float64=.8, val_size::Float64=.0)
+    nrows = size(x)[1]
     ntrain = floor(Int, nrows * train_size)
 
     test_size = ifelse( val_size == 0., 1. - train_size, 1. - train_size - val_size)
@@ -16,14 +17,14 @@ function data_split(X, y; shuffle=true, train_size::Float64=.8, val_size::Float6
 
     if shuffle
         p = randperm(nrows)
-        X = X[p,:]
+        x = x[p,:]
         y = y[p,:]
     end
     
-    X_train, X_test, X_val = X[train,:], X[test,:], X[val,:]
+    x_train, x_test, x_val = x[train,:], x[test,:], x[val,:]
     y_train, y_test, y_val = y[train,:], y[test,:], y[val,:]
 
-    (X_train, y_train), (X_test, y_test), (X_val, y_val)
+    (x_train, y_train), (x_test, y_test), (x_val, y_val)
 end
 
 ## DATA LOADER

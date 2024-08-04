@@ -150,7 +150,7 @@ function f1_score(y, ŷ)
 
     f1 = 2 * (p .* r) ./ (p .+ r)
 
-    printstyled("F1_Score = $(f1)\n"; bold=true, color=:blue)
+    printstyled("F1-score = $(f1)\n"; bold=true, color=:blue)
     f1, sum(f1) / length(f1) # f1_score, mean f1_score
 end
 

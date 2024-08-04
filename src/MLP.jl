@@ -5,7 +5,7 @@ using Metrics
 
 export FeedForward, BackProp
 
-export Regularizer, Solver
+export Regularization, Solver
 export Layer, TrainNN, Predict, loss_fct
 
 ### N-NET ARCHITECTURE
@@ -41,27 +41,27 @@ function (l::Layer)(x) # ::Array{Float64, 2})
     l.W * x .+ l.b
 end
 
-### REGULARIZER: method, λ, r, dropout
-struct Regularizer
+### REGULARIZATION: method, λ, r, dropout
+struct Regularization
     method::Union{Symbol, String} # :L1, :L2, :ElasticNet
     λ::Float64 
     r::Float64 
     dropout::Float64 
 
-    Regularizer(a, b, c, d) = new(a, b, c, d)
-    Regularizer() = new(:none, 0., 0., 0.)
+    Regularization(a, b, c, d) = new(a, b, c, d)
+    Regularization() = new(:none, 0., 0., 0.)
 end
 
-### SOLVER: loss, optimizer, η, regularizer
+### SOLVER: loss, optimizer, η, regularization
 struct Solver
     loss::Union{Symbol, String} # :MSE, :CrossEntropy
     optimizer::Union{Symbol, String} # :SGD, :Adam, :RMSprop
     η::Float64
-    regularizer::Regularizer
+    regularization::Regularization
 
     Solver(a, b, c, d) = new(a, b, c, d)
-    Solver(d::Regularizer) = new(:mse, :sgd, .001, d)
-    Solver() = new(:None, :None, 0., Regularizer())
+    Solver(d::Regularization) = new(:mse, :sgd, .001, d)
+    Solver() = new(:None, :None, 0., Regularization())
 end
 
 ### TRAINING
@@ -119,15 +119,15 @@ function FeedForward(layers::Vector{Layer}, data_in; solver::Solver=Solver(), ou
         data_in = reshape(data_in, 1, length(data_in))
     end
 
-    dropout = solver.regularizer.dropout
+    dropout = solver.regularization.dropout
     data_cache = [[], []]
-    a, h = [], []
+    z, a = [], []
     nrows, _ = size(data_in)
     nouts = length(layers[end].b)
     data_out = zeros(nrows, nouts)
     for i in 1:nrows
         data = data_in[i, :]
-        push!(h, data)
+        push!(a, data)
         for (ix, l) in enumerate(layers)
             data = l(data)
             len = length(l.b)
@@ -136,19 +136,19 @@ function FeedForward(layers::Vector{Layer}, data_in; solver::Solver=Solver(), ou
             if ix != length(layers)
                 data[vec[indices]] .= 0.
             end
-            push!(a, data)
+            push!(z, data)
             data = l.act(data)
             if ix != length(layers)
                 data[vec[indices]] .= 0.
                 data ./= (1 - dropout)
             end
-            push!(h, data)
+            push!(a, data)
         end
 
-        data_out[i, :] = h[end]
+        data_out[i, :] = a[end]
         
-        push!(data_cache[1], a); a = []
-        push!(data_cache[2], h); h = []
+        push!(data_cache[1], z); z = []
+        push!(data_cache[2], a); a = []
     end
 
     if output
@@ -161,7 +161,7 @@ end
 ### BACKPROP
 function BackProp(layers::Vector{Layer}, data_cache, data_out; solver::Solver)
     
-    reg = solver.regularizer
+    reg = solver.regularization
 
     loss, ∇W, ∇b = 0., [], []
 
@@ -171,10 +171,10 @@ function BackProp(layers::Vector{Layer}, data_cache, data_out; solver::Solver)
     batch_size = size(data_cache[1])[1]
 
     for i in 1:batch_size
-        a, h = data_cache[1][i], data_cache[2][i]
+        z, a = data_cache[1][i], data_cache[2][i]
         y = data_out[i, :]
 
-        loss += loss_fct(y, h[end]; loss=solver.loss)
+        loss += loss_fct(y, a[end]; loss=solver.loss)
 
         if (isa(reg.method, Symbol) && reg.method == :l1) || (isa(reg.method, String) && lowercase(reg.method) == "l1") # LASSO 
             for (ix, l) in enumerate(layers)
@@ -196,22 +196,22 @@ function BackProp(layers::Vector{Layer}, data_cache, data_out; solver::Solver)
         len = length(layers)
         ## Compute δ
         if (isa(solver.loss, Symbol) && solver.loss == :binarycrossentropy) || (isa(solver.loss, String) && lowercase(solver.loss) == "binarycrossentropy")
-            δ = [layers[end].act(a[end]; diff=true) .* (y ./ (h[end] .+ 1e-10) .- (1 .- y) ./ (1 .- h[end]))]
+            δ = [layers[end].act(z[end]; diff=true) .* (y ./ (a[end] .+ 1e-10) .- (1 .- y) ./ (1 .- a[end]))]
         elseif layers[end].act == softmax
-            δ = [softmax(a[end]; diff=true)' * (y ./ (h[end] .+ 1e-10))]
+            δ = [softmax(z[end]; diff=true)' * (y ./ (a[end] .+ 1e-10))]
         else
-            δ = [layers[end].act(a[end]; diff=true) .* (y .- h[end])]
+            δ = [layers[end].act(z[end]; diff=true) .* (y .- a[end])]
         end
         
         for j in len-1:-1:1
-            pushfirst!(δ, (layers[j+1].W' * δ[1]) .* layers[j].act(a[j]; diff=true))
+            pushfirst!(δ, (layers[j+1].W' * δ[1]) .* layers[j].act(z[j]; diff=true))
         end
 
         ## Compute gradients
-        ∇W += [-δ[k] * h[k]' for k in 1:len]
+        ∇W += [-δ[k] * a[k]' for k in 1:len]
         ∇b += -δ
 
-        a, h = [], []
+        z, a = [], []
     end
 
     loss /= batch_size

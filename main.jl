@@ -1,6 +1,9 @@
 using Printf
 Base.show(io::IO, f::Float64) = @printf(io, "%1.3f", f)
 
+using Random
+Random.seed!(1234)
+
 push!(LOAD_PATH, pwd() * "/src")
 
 using Revise
@@ -18,7 +21,7 @@ mutable struct Settings
     Settings(epochs) = new(epochs, 1)
 end
 
-hp = Settings(16, 12) 
+hp = Settings(20, 16) 
 
 using RDatasets
 iris = dataset("datasets", "iris")
@@ -33,15 +36,15 @@ data_y = data_loader(y_train, hp.batch_size)
 
 ## Model architecture
 model = [ # MLP
-    Layer(num_features, 32, relu; distribution='n'),
-    Layer(32, num_targets, softmax, distribution='n')
+    Layer(num_features, 40, relu; distribution='n'),
+    Layer(40, num_targets, softmax, distribution='n')
     ]
 
-## Regularizer
-regularizer = Regularizer(:none, .2, .6, .0) # method, λ, r, dropout
+## Regularization
+reg = Regularization(:none, .2, .6, .0) # method, λ, r, dropout
 
 ## Solver
-solver = Solver(:crossentropy, :sgd, .03, regularizer)
+solver = Solver(:crossentropy, :sgd, .03, reg)
 
 ltrn, ltst = [], []
 
@@ -79,5 +82,5 @@ cm(y_test, ŷ_tst)
 ## Accuracy Score
 accuracy_score(y_test, ŷ_tst);
 
-## F1 Score
+## F1-score
 f1_score(y_test, ŷ_tst);
