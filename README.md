@@ -19,19 +19,19 @@ Settings(epochs, batch_size)
 ```
 
 ## Model's Training
-We can define a `struct` for the regularizer as follows:
+We can define a `struct` for the regularization as follows:
 ```julia
-Regularizer(method, λ, r, dropout)
+reg = Regularization(method, λ, r, dropout)
 ```
 `method` can be symbol or string of one of the following: `l1`, `l2`, `elasticnet`, or `none`. The `λ` parameter is the regularization parameter. The `r` parameter determines the mix of penalties in case of `elasticnet` method. The `dropout` parameter is the dropout rate. `loss` and `optimizer` are accessed through:
 ```julia
-Solver(loss, optimizer, learning_rate, regularizer)
+Solver(loss, optimizer, learning_rate, reg)
 ```
 `loss` can be `:mae`, `:mse`, `:rmse`, `:binarycrossentropy` or `:crossentropy`. `:sgd` is the default optimizer. The model is trained using the following method:
 ```julia
 TrainNN(model, data_in, data_out, x_val, y_val; solver)
 ```
-Under the hood, the `TrainNN` method calls the `FeedForward` and `BackProp` functions. The `FeedForward` method returns the pre-activations and the hypothesis of the model: `data_cache`. The method signature is:
+Under the hood, the `TrainNN` method calls the `FeedForward` and `BackProp` functions. The `FeedForward` method returns the pre-activations `z` and the post-activations `a`, bundled into `data_cache`. The method signature is:
 ```julia
 data_cache = FeedForward(model, data_in; solver::Solver)
 ```
@@ -48,9 +48,13 @@ The code is written in `Julia`. The `main.jl` file contains the primary code to 
 
 ## Simulation Outcomes
 
-The figure below displays the model's *loss* for both the *training* and *test sets* at the end of each epoch.
+`Julia` version and status of used packages are shown below:
 
-![Loss](./Images/plot_loss.svg)
+![Version info and pkgs status](./Images/versioninfo+st.png)
+
+The figure hereafter displays the model's *loss* for both the *training* and *test sets* at the end of each epoch.
+
+![Loss](./Images/plot_loss.png)
 
 The following provides specifics about *confusion matrix*, *accuracy*, *precision*, *recall* and *f1-score* metrics.
 
